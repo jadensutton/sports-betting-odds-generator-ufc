@@ -22,7 +22,7 @@ function App() {
 
     useEffect(() => {
         console.log(fighters)
-        axios.get('http://localhost:5000/get_fighters').then(response => {
+        axios.get('https://sports-betting-odds-generator.herokuapp.com/get_fighters').then(response => {
             setFighters(response['data']['result'])
         }).catch(error => {
             setFighters('')
@@ -40,7 +40,7 @@ function App() {
             setError('Please select both fighters.')
         }
         else {
-            await axios.get('http://localhost:5000/generate_odds', {
+            await axios.get('https://sports-betting-odds-generator.herokuapp.com/generate_odds', {
                 params: {
                     fighter_a: fighterA,
                     fighter_b: fighterB
