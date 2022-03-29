@@ -3,8 +3,8 @@ import mysql.connector
 if __name__ == '__main__':
         db = mysql.connector.connect(
             host='us-cdbr-east-05.cleardb.net',
-            user='bfa36e4204c168',
-            passwd='7a0e5271',
+            user=os.environ.get('DB_USER'),
+            passwd=os.environ.get('DB_PASS'),
             database='heroku_6b97baa7d0c1585'
         )
 
