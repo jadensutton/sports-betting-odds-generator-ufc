@@ -3,7 +3,7 @@ flask_cors
 requests
 bs4
 lxml
-pickle
+pickle5
 sklearn
 mysql-connector-python
 gunicorn
