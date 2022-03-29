@@ -1,0 +1,9 @@
+flask
+flask_cors
+requests
+bs4
+lxml
+pickle
+sklearn
+mysql-connector-python
+gunicorn
