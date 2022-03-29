@@ -13,6 +13,9 @@ app = flask.Flask(__name__, static_folder='client/build', static_url_path='')
 cors = CORS(app)
 app.config['CORS_HEADER'] = 'Content-Type'
 
+pickle_in = open('./models/model.pickle', 'rb')
+model = pickle.load(pickle_in)
+
 def generate_x(fighter_stats, opponent_stats) -> list:
     return [fighter_stats[1] - opponent_stats[1], fighter_stats[2] - opponent_stats[2], fighter_stats[3] - opponent_stats[3], fighter_stats[4] - opponent_stats[4], fighter_stats[5] - opponent_stats[5], fighter_stats[6] - opponent_stats[6], fighter_stats[7] - opponent_stats[7], fighter_stats[8] - opponent_stats[8]]
 
@@ -98,9 +101,3 @@ def generate_odds() -> dict:
 @cross_origin()
 def serve():
     return send_from_directory(app.static_folder, 'index.html')
-
-if __name__ == '__main__':
-    pickle_in = open('./models/model.pickle', 'rb')
-    model = pickle.load(pickle_in)
-
-    app.run()

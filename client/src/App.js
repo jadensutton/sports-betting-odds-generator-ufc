@@ -21,13 +21,11 @@ function App() {
     const [fighters, setFighters] = useState('')
 
     useEffect(() => {
-        console.log(fighters)
         axios.get('https://sports-betting-odds-generator.herokuapp.com/get_fighters').then(response => {
             setFighters(response['data']['result'])
         }).catch(error => {
             setFighters('')
     })  
-        console.log(fighters)
       }, []);
 
     async function handleSubmit(e) {
