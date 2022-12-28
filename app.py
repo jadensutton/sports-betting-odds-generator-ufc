@@ -21,11 +21,11 @@ def generate_x(fighter_stats, opponent_stats) -> list:
     return [fighter_stats[1] - opponent_stats[1], fighter_stats[2] - opponent_stats[2], fighter_stats[3] - opponent_stats[3], fighter_stats[4] - opponent_stats[4], fighter_stats[5] - opponent_stats[5], fighter_stats[6] - opponent_stats[6], fighter_stats[7] - opponent_stats[7], fighter_stats[8] - opponent_stats[8]]
 
 def get_fighter_photo(fighter) -> str:
-    r = requests.get('https://www.ufc.com/athlete/{}'.format(fighter.replace(' ', '-')))
+    r = requests.get('https://www.ufc.com/athlete/{}'.format(fighter.replace('-','').replace(' ', '-')))
     soup = BeautifulSoup(r.text, 'lxml')
 
     try:
-        image_url = soup.find('div', {'class' : 'c-bio__image'}).find('img').get('src')
+        image_url = soup.find('div', {'class' : 'hero-profile__image-wrap'}).find('img').get('src')
 
         return image_url
 
