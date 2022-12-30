@@ -1,6 +1,6 @@
 import flask
 import os
-import json
+import sys
 import pickle
 import mysql.connector
 import requests
@@ -96,6 +96,7 @@ def generate_odds() -> dict:
 
     except Exception as e:
         print(e)
+        sys.stdout.flush()
         return {'status': 'failure', 'result': 'Unknown error, please try again later.'}
 
 @app.route('/')
