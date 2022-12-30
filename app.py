@@ -73,8 +73,8 @@ def generate_odds() -> dict:
         data = mycursor.fetchall()
 
         if len(data) == 2:
-            fighter_a_data = [x for x in data if x[0] == fighter_a][0]
-            fighter_b_data = [x for x in data if x[0] == fighter_b][0]
+            fighter_a_data = [x for x in data if x[0] == fighter_a][0][1:]
+            fighter_b_data = [x for x in data if x[0] == fighter_b][0][1:]
 
             x1, x2 = generate_x(fighter_a_data, fighter_b_data), generate_x(fighter_b_data, fighter_a_data)
 
