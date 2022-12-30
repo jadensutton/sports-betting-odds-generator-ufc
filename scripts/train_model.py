@@ -5,30 +5,31 @@ import pandas as pd
 import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.utils import shuffle
-from sklearn import linear_model
-from time import sleep
+from sklearn.metrics import log_loss
 
 predict = 'result'
 
-data = pd.read_csv('../data/train2.csv', sep=',')
+data = pd.read_csv('data/train_v3.csv', sep=',')
 
 X = np.array(data.drop([predict], 1))
 y = np.array(data[predict])
 
-best = 0
-for n in range(30):
+best = 1
+for n in range(10):
     x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size = 0.2)
 
-    model = RandomForestClassifier()
+    model = RandomForestClassifier(n_estimators=500)
     model.fit(x_train, y_train)
 
-    acc = model.score(x_test, y_test)
-    print('Model Accuracy: ' + str (acc * 100) + '%')
+    y_pred = [y[1] for y in model.predict_proba(x_test)]
 
-    if acc > best:
-        best = acc
-        with open('../models/model2.pickle', 'wb') as f:
+    acc = model.score(x_test, y_test)
+    lg_loss = log_loss(y_test, y_pred)
+    print('Model Accuracy: {}%  Model Log Loss: {}'.format(str (acc * 100), lg_loss))
+
+    if lg_loss < best:
+        best = lg_loss
+        with open('models/model_v3.pickle', 'wb') as f:
             pickle.dump(model, f)
 
-print('Final model accuracy: {}%'.format(round(100 * best, 2)))
+print('Final model log loss: {}'.format(best))

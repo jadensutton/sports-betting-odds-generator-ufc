@@ -1,9 +1,7 @@
 import csv
-import os
 import requests
 import mysql.connector
-
-import pandas as pd
+import os
 
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -28,9 +26,9 @@ def get_prior_fight_stats(name: str) -> tuple:
     r = requests.get(fighter_page_urls[name])
     soup = BeautifulSoup(r.text, 'lxml')
     table = soup.find('table', {'class' : 'b-fight-details__table b-fight-details__table_style_margin-top b-fight-details__table_type_event-details js-fight-table'}).find('tbody').find_all('tr')[:0:-1]
-    for n, row in enumerate(table[-5:]):
-        if n == 4 and row.find_all('td')[0].find('p').find('a').find('i').find('i').text == 'next':
-            row = table[-6]
+    for n, row in enumerate(table[-3:]):
+        if n == 2 and row.find_all('td')[0].find('p').find('a').find('i').find('i').text == 'next':
+            row = table[-4]
 
         cells = row.find_all('td')
         strikes += remove_non_ints(cells[3].find('p').text)
@@ -56,8 +54,6 @@ def get_fighter_attributes(name: str) -> tuple:
 def get_opponent_prior_wins(event: str, opponent: str) -> tuple:
     wins = 0
 
-    r = requests.get(fighter_page_urls[opponent])
-    soup = BeautifulSoup(r.text, 'lxml')
     table = BeautifulSoup(requests.get(fighter_page_urls[opponent]).text, 'lxml').find('table', {'class' : 'b-fight-details__table b-fight-details__table_style_margin-top b-fight-details__table_type_event-details js-fight-table'}).find('tbody').find_all('tr')[:0:-1]
     end_index = [n for n, x in enumerate(table) if x.find_all('td')[0].find('p').find('a').find('i').find('i').text != 'next' and x.find_all('td')[6].find('p').find('a').text == event][0]
     for row in table[:end_index]:
@@ -71,7 +67,7 @@ def get_fighter_data(fighter) -> list:
     soup = BeautifulSoup(r.text, 'lxml')
     table = soup.find('table', {'class' : 'b-fight-details__table b-fight-details__table_style_margin-top b-fight-details__table_type_event-details js-fight-table'}).find('tbody').find_all('tr')[:0:-1]
 
-    stats = {'Wins': 0, 'Losses': 0, 'Finishes': 0, 'Finished': 0, 'Opponent Prior Wins': 0}
+    stats = {'Wins': 0, 'Finishes': 0, 'Finished': 0, 'Opponent Prior Wins': 0}
     try:
         if len(table) >= 5:
             for i, fight in enumerate(table[-5:]):
@@ -85,8 +81,6 @@ def get_fighter_data(fighter) -> list:
                             if 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
                                 stats['Finishes'] += 1
                         elif fight_cells[0].find('p').find('a').find('i').find('i').text == 'loss':
-                            stats['Losses'] += 1
-
                             if 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
                                 stats['Finished'] += 1
 
@@ -100,8 +94,6 @@ def get_fighter_data(fighter) -> list:
                             if 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
                                 stats['Finishes'] += 1
                         elif fight_cells[0].find('p').find('a').find('i').find('i').text == 'loss':
-                            stats['Losses'] += 1
-
                             if 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
                                 stats['Finished'] += 1
                 else:
@@ -114,8 +106,6 @@ def get_fighter_data(fighter) -> list:
                             if 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
                                 stats['Finishes'] += 1
                         elif fight_cells[0].find('p').find('a').find('i').find('i').text == 'loss':
-                            stats['Losses'] += 1
-
                             if 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
                                 stats['Finished'] += 1
 
@@ -125,7 +115,7 @@ def get_fighter_data(fighter) -> list:
             height, reach, age = get_fighter_attributes(fighter)
             strikes_pm, takedowns_pm = get_prior_fight_stats(fighter)
 
-            return reach, stats['Wins'], stats['Losses'], stats['Finishes'], stats['Finished'], stats['Opponent Prior Wins'], strikes_pm, takedowns_pm
+            return reach, stats['Wins'], stats['Finishes'], stats['Finished'], stats['Opponent Prior Wins'], strikes_pm, takedowns_pm, age
 
     except Exception as e:
         pass
@@ -135,10 +125,15 @@ def get_fighter_data(fighter) -> list:
 if __name__ == '__main__':
     fighters = []
     fighter_page_urls = {}
-    with open('../data/fighter_ufc_stats_pages.csv', newline='') as f:
+    with open('data/fighter_ufc_stats_pages.csv', newline='') as f:
         for row in csv.reader(f):
             fighters.append(row[0])
             fighter_page_urls[row[0]] = row[1]
+
+    elos = {}
+    with open('data/fighter_historical_elos.csv', newline='') as f:
+        for row in csv.reader(f):
+            elos[row[0]] = float([x for x in row if x != ''][-1])
 
     db = mysql.connector.connect(
         host='us-cdbr-east-05.cleardb.net',
@@ -152,7 +147,12 @@ if __name__ == '__main__':
     for fighter in fighters:
         data = get_fighter_data(fighter)
         if data != None:
-            sql_string = "INSERT INTO fighterdata (Name, Reach, RecentWins, RecentLosses, RecentFinishes, RecentTimesFinished, RecentOpponentWins, StrikesPerMinute, TakedownsPerMinute) VALUES {}".format((fighter,) + data)
-            mycursor.execute(sql_string)
+            try:
+                sql_string = '''INSERT INTO fighterdata (Name, Reach, RecentWins, RecentFinishes, RecentTimesFinished, RecentOpponentWins, StrikesPerMinute, TakedownsPerMinute, Age, Elo) VALUES {}
+                ON DUPLICATE KEY UPDATE Reach={}, RecentWins={}, RecentFinishes={}, RecentTimesFinished={}, RecentOpponentWins={}, StrikesPerMinute={}, TakedownsPerMinute={}, Age={}, Elo={};
+                '''.format(((fighter,) + data + (elos[fighter],)), *(data + (elos[fighter],)))
+                mycursor.execute(sql_string)
 
-            db.commit()
+                db.commit()
+            except Exception as e:
+                print(e)

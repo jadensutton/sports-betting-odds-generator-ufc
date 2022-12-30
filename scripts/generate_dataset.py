@@ -3,10 +3,8 @@ import requests
 
 import pandas as pd
 
-from googlesearch import search
 from bs4 import BeautifulSoup
 from datetime import datetime
-from statistics import mean
 
 def remove_non_ints(s: str) -> int:
     if '-' in s:
@@ -79,8 +77,8 @@ def generate_dataset(fighters: list):
                     cells = table[n + 5].find_all('td')
                     opponent = remove_whitespace(cells[1].find_all('p')[1].text)
                     if opponent in fighters and [fighter, opponent] not in fights:
-                        a_stats = {'Wins': 0, 'Losses': 0, 'Finishes': 0, 'Finished': 0, 'Opponent Prior Wins': 0}
-                        b_stats = {'Wins': 0, 'Losses': 0, 'Finishes': 0, 'Finished': 0, 'Opponent Prior Wins': 0}
+                        a_stats = {'Wins': 0, 'Finishes': 0, 'Finished': 0, 'Opponent Prior Wins': 0}
+                        b_stats = {'Wins': 0, 'Finishes': 0, 'Finished': 0, 'Opponent Prior Wins': 0}
                         fight_sequence_valid = True
                         for i, fight in enumerate(table[n:n + 5]):
                             fight_cells = fight.find_all('td')
@@ -91,10 +89,7 @@ def generate_dataset(fighters: list):
 
                                     if 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
                                         a_stats['Finishes'] += 1
-                                else:
-                                    a_stats['Losses'] += 1
-
-                                    if 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
+                                elif 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
                                         a_stats['Finished'] += 1
 
                                 curr_opponent = remove_whitespace(fight_cells[1].find_all('p')[1].text)
@@ -116,10 +111,7 @@ def generate_dataset(fighters: list):
 
                                         if 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
                                             b_stats['Finishes'] += 1
-                                    else:
-                                        b_stats['Losses'] += 1
-
-                                        if 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
+                                    elif 'KO/TKO' in fight_cells[7].find('p').text or 'SUB' in fight_cells[7].find('p').text:
                                             b_stats['Finished'] += 1
 
                                 b_stats['Opponent Prior Wins'] += get_opponent_prior_wins(fight_cells[6].find('p').find('a').text, remove_whitespace(fight_cells[1].find_all('p')[1].text))
@@ -133,9 +125,9 @@ def generate_dataset(fighters: list):
                             height_b, reach_b, age_b = get_fighter_attributes(opponent)
                             strikes_pm_a, takedowns_pm_a = get_prior_fight_stats(fighter, event)
                             strikes_pm_b, takedowns_pm_b = get_prior_fight_stats(opponent, event)
-                            print('Ping')
+
                             result = 1 if cells[0].find('p').find('a').find('i').find('i').text == 'win' else 0
-                            fight_data.append([reach_a - reach_b, a_stats['Wins'] - b_stats['Wins'], a_stats['Losses'] - b_stats['Losses'], a_stats['Finishes'] - b_stats['Finishes'], a_stats['Finished'] - b_stats['Finished'], a_stats['Opponent Prior Wins'] - b_stats['Opponent Prior Wins'], strikes_pm_a - strikes_pm_b, takedowns_pm_a - takedowns_pm_b, result])
+                            fight_data.append([age_a - age_b, reach_a - reach_b, a_stats['Wins'] - b_stats['Wins'], a_stats['Finishes'] - b_stats['Finishes'], a_stats['Finished'] - b_stats['Finished'], a_stats['Opponent Prior Wins'] - b_stats['Opponent Prior Wins'], strikes_pm_a - strikes_pm_b, takedowns_pm_a - takedowns_pm_b, result])
 
         except Exception as e:
             print(e)
@@ -145,11 +137,12 @@ def generate_dataset(fighters: list):
 if __name__ == '__main__':
     fighters = []
     fighter_page_urls = {}
-    with open('../data/fighter_ufc_stats_pages.csv', newline='') as f:
+    with open('data/fighter_ufc_stats_pages.csv', newline='') as f:
         for row in csv.reader(f):
             fighters.append(row[0])
             fighter_page_urls[row[0]] = row[1]
 
     dataset = generate_dataset(fighters)
-    df = pd.DataFrame(dataset, columns=['reach_diff','3f_win_diff','3f_loss_diff','3f_finish_diff','3f_finished_diff','3f_opp_win_diff','strpm_diff','tdpm_diff','result'])
-    df.to_csv('../data/train2.csv', index=False)
+    df = pd.DataFrame(dataset, columns=['age_diff', 'reach_diff','5f_win_diff','5f_finish_diff','5f_finished_diff','5f_opp_win_diff','strpm_diff','tdpm_diff','result'])
+    df.to_csv('data/train3.csv', index=False)
+ 
