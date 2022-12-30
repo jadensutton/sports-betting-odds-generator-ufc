@@ -154,5 +154,6 @@ if __name__ == '__main__':
                 mycursor.execute(sql_string)
 
                 db.commit()
+
             except Exception as e:
                 print(e)
