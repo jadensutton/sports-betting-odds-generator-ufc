@@ -1,8 +1,8 @@
 This is a web application meant to serve a Random Forest model I built to generate odds for UFC matches. To use, simply select two fighters and click to generate odds.
 
-The stats for the model are as follows:
-Classification accuracy - 69%
-Log loss - 0.54
+The performance metrics for the model are as follows:
+1. Classification accuracy - 69%
+1. Log loss - 0.54
 
 Please note the following limitations of the model:
 1. The model cannot account for instances where a fighter from one weight class is matched up against a fighter from a different weight class. In such instances, the
